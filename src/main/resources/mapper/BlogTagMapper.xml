@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wyy.myblog.dao.BlogTagMapper">
+
+    <resultMap id="BaseResultMap" type="com.wyy.myblog.entity.BlogTag">
+        <id column="tag_id" jdbcType="INTEGER" property="tagId"/>
+        <result column="tag_name" jdbcType="VARCHAR" property="tagName"/>
+        <result column="is_deleted" jdbcType="TINYINT" property="isDeleted"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+
+    <resultMap id="BaseCountResultMap" type="com.wyy.myblog.entity.TagBlogCount">
+        <id column="tag_id" jdbcType="INTEGER" property="tagId"/>
+        <result column="blog_count" jdbcType="INTEGER" property="blogCount"/>
+        <result column="tag_name" jdbcType="VARCHAR" property="tagName"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        tag_id, tag_name, is_deleted, create_time
+    </sql>
+
+    <select id="getTotalBlogTags" parameterType="java.util.Map" resultType="int">
+        select count(*) from tb_blog_tag where is_deleted = 0
+    </select>
+
+    <select id="getTagList" parameterType="Map" resultMap="BaseResultMap">
+        select
+        <include refid="BaseColumnList"/>
+        from tb_blog_tag
+        where is_deleted = 0
+        order by tag_id desc
+        <if test="start != null and limit != null">
+            limit #{start}, #{limit}
+        </if>
+    </select>
+
+    <select id="getTagBlogCount" resultMap="BaseCountResultMap">
+        select t.tag_id, count(*) as blog_count, t.tag_name from
+            (select r.tag_id, r.blog_id from tb_blog_tag_relation r inner join
+                (select blog_id from tb_blog where is_deleted = 0) b
+            on r.blog_id = b.blog_id) rb inner join
+        (select tag_id, tag_name from tb_blog_tag where is_deleted = 0) t
+        on rb.tag_id = t.tag_id group by t.tag_id order by blog_count desc limit 20;
+    </select>
+
+    <select id="selectByTagName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="BaseColumnList"/>
+        from tb_blog_tag
+        where is_deleted = 0 AND tag_name = #{tagName, jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insert" parameterType="com.wyy.myblog.entity.BlogTag">
+        insert into tb_blog_tag(<include refid="BaseColumnList"/>)
+        values (#{tagId, jdbcType=INTEGER}, #{tagName, jdbcType=VARCHAR},
+        #{isDeleted, jdbcType=TINYINT}, #{createTime, jdbcType=TIMESTAMP})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.wyy.myblog.entity.BlogTag">
+        insert into tb_blog_tag
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="tagId != null">tag_id,</if>
+            <if test="tagName != null">tag_name,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+            <if test="createTime != null">create_time,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="tagId != null">#{tagId, jdbcType=INTEGER},</if>
+            <if test="tagName != null">#{tagName, jdbcType=VARCHAR},</if>
+            <if test="isDeleted != null">#{isDeleted, jdbcType=TINYINT},</if>
+            <if test="createTime != null">#{createTime, jdbcType=TIMESTAMP},</if>
+        </trim>
+    </insert>
+
+    <!-- 批量插入 经典例子 mysql支持 insert into tb values(), (), ...语法
+    生成主键（useGeneratedKeys），同时返回主键（keyProperty）-->
+    <insert id="batchInsertSelective" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="tagId">
+        insert into tb_blog_tag(tag_name) values
+        <foreach collection="list" item="blogTag" separator=",">
+            (#{blogTag.tagName, jdbcType=VARCHAR})
+        </foreach>
+    </insert>
+
+    <update id="deleteTags" parameterType="java.lang.Integer">
+        update tb_blog_tag set is_deleted = 1
+        where tag_id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wyy.myblog.dao.BlogTagRelationMapper">
+
+    <resultMap id="BaseResultMap" type="com.wyy.myblog.entity.BlogTagRelation">
+        <id column="relation_id" jdbcType="BIGINT" property="relationId"/>
+        <id column="blog_id" jdbcType="BIGINT" property="blogId"/>
+        <id column="tag_id" jdbcType="INTEGER" property="tagId"/>
+        <id column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+    </resultMap>
+
+    <sql id="BaseColumnList">
+        relation_id, blog_id, tag_id, create_time
+    </sql>
+
+    <select id="selectDistinctTagIds" resultType="java.lang.Long">
+        select distinct(tag_id) from tb_blog_tag_relation
+        where tag_id in
+        <foreach collection="array" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <insert id="batchInsertSelective" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="relationId">
+        insert into tb_blog_tag_relation(blog_id, tag_id) values
+        <foreach collection="list" item="blogTagRelation" separator=",">
+            (#{blogTagRelation.blogId, jdbcType=BIGINT}, #{blogTagRelation.tagId, jdbcType=INTEGER})
+        </foreach>
+    </insert>
+
+    <delete id="deleteByBlogId" parameterType="java.lang.Long">
+        delete from tb_blog_tag_relation where blog_id = #{blogId, jdbcType=BIGINT}
+    </delete>
+</mapper>
