@@ -1,14 +1,15 @@
 package com.wyy.myblog.controller.admin;
 
 import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.RandomUtil;
-import com.sun.media.jfxmedia.logging.Logger;
 import com.wyy.myblog.config.Constants;
 import com.wyy.myblog.entity.Blog;
 import com.wyy.myblog.service.BlogCategoryService;
 import com.wyy.myblog.service.BlogService;
-import com.wyy.myblog.util.*;
+import com.wyy.myblog.util.PageQuery;
+import com.wyy.myblog.util.PageResult;
+import com.wyy.myblog.util.Result;
+import com.wyy.myblog.util.ResultUtil;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +20,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * created by 伍猷煜 on 2022/6/21 14:54 星期二
@@ -263,10 +259,11 @@ public class BlogController {
             // 保存图片
             file.transferTo(destFile);
             // 返回图片访问路径
-            String fileUrl = MyBlogUtils.getHost(new URI(request.getRequestURL() + ""))
-                    + Constants.RESOURCE_PATH_PREFIX + newFileName;
+            // String fileUrl = MyBlogUtils.getHost(new URI(request.getRequestURL() + ""))
+            //         + Constants.RESOURCE_PATH_PREFIX + newFileName;
+            String fileUrl = Constants.RESOURCE_PATH_PREFIX + newFileName;
             return ResultUtil.success(fileUrl);
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return ResultUtil.fail("上传失败");
         }
@@ -305,10 +302,11 @@ public class BlogController {
             }
             file.transferTo(destFile);
             // 返回图片访问路径
-            String fileUrl = MyBlogUtils.getHost(new URI(request.getRequestURL() + ""))
-                    + Constants.RESOURCE_PATH_PREFIX + newFileName;
+            // String fileUrl = MyBlogUtils.getHost(new URI(request.getRequestURL() + ""))
+            //         + Constants.RESOURCE_PATH_PREFIX + newFileName;
+            String fileUrl = Constants.RESOURCE_PATH_PREFIX + newFileName;
             response.getWriter().write("{\"success\": 1, \"message\":\"success\",\"url\":\"" + fileUrl + "\"}");
-        } catch (IOException | URISyntaxException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             response.getWriter().write("{\"success\":0}");
         }

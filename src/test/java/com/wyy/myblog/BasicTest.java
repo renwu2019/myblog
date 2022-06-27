@@ -3,9 +3,12 @@ package com.wyy.myblog;
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
 import com.wyy.myblog.entity.BlogLink;
+import com.wyy.myblog.util.MyBlogUtils;
 import org.junit.jupiter.api.Test;
 import org.springframework.util.StringUtils;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.DateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -14,6 +17,15 @@ import java.util.stream.Collectors;
  * created by 伍猷煜 on 2022/6/14 16:58 星期二
  */
 public class BasicTest {
+
+    @Test
+    public void testURI() throws URISyntaxException {
+        // URI uri = new URI("https" + "://" + "www.baidu.com" + ":" + 443);
+        URI uri = new URI("/admin/blogs/upload/image/a.txt");
+        System.out.println(uri);
+        URI host = MyBlogUtils.getHost(uri);
+        System.out.println(host);
+    }
 
     @Test
     public void testInt() {

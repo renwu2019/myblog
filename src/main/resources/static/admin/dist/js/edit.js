@@ -146,7 +146,12 @@ $('#saveButton').click(function () {
     var blogCategoryId = $('#blogCategoryId').val();
     var blogTags = $('#blogTags').val();
     var blogContent = blogEditor.getMarkdown();
-    var blogCoverImage = $('#blogCoverImage')[0].src;
+    // 使用attributes.src.nodeValue[value、textContent]，原始的html中的src，否则如果直接使用$('#blogCoverImage')[0].src的话，若后端返回过来的是图片路径，不带host的
+    // 比如/upload/20220627_121835_455.jpg，它的src值就是http://192.168.1.109/upload/20220627_121835_455.jpg
+    // 而不是原始传过来的值了，它会添加当前请求的服务器的host，导致图片最终保存在数据库的地址是URL
+    var blogCoverImage = $('#blogCoverImage')[0].attributes.src.nodeValue;
+    // var blogCoverImage = $('#blogCoverImage')[0].attributes.src.textContent;
+    // var blogCoverImage = $('#blogCoverImage')[0].attributes.src.value;
     var blogStatus = $("input[name='blogStatus']:checked").val();
     var enableComment = $("input[name='enableComment']:checked").val();
     if (isNull(blogCoverImage) || blogCoverImage.indexOf('img-upload') != -1) {
