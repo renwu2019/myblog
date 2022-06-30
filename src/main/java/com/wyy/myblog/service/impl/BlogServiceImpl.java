@@ -61,8 +61,7 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public Boolean batchDeleteBlogs(Integer[] ids) {
-        // TODO 这里就不需要管关联表么？
-        return mBlogMapper.batchDeleteByPrimaryKeys(ids) > 0;
+        return mBlogMapper.deleteByPrimaryKeys(ids) > 0;
     }
 
     /**

@@ -52,7 +52,7 @@ public class AdminUserServiceImpl implements AdminUserService {
             return false;
         }
         String oldPasswordMD5 = MD5Util.MD5Encode(oldPassword, "UTF-8");
-        if (oldPasswordMD5.equals(adminUser.getLoginPassword())) {
+        if (!oldPasswordMD5.equals(adminUser.getLoginPassword())) {
             return false;
         }
         String newPasswordMD5 = MD5Util.MD5Encode(newPassword, "UTF-8");

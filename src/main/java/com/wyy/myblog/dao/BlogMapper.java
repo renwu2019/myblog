@@ -43,7 +43,7 @@ public interface BlogMapper {
 
     int updateByPrimaryKey(Blog blog);
 
-    int batchDeleteByPrimaryKeys(Integer[] ids);
+    int deleteByPrimaryKeys(Integer[] ids);
 
     int insert(Blog blog);
 

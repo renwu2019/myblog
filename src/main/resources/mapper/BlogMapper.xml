@@ -68,8 +68,8 @@
     <select id="getBlogListByType" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         select <include refid="BaseColumnList"/> from tb_blog
         where is_deleted = 0 AND blog_status = 1
-        <if test="type = 0">order by blog_views desc</if>
-        <if test="type = 1">order by blog_id desc</if>
+        <if test="type == 0">order by blog_views desc</if>
+        <if test="type == 1">order by blog_id desc</if>
         limit #{limit}
     </select>
 
@@ -146,14 +146,6 @@
     </update>
 
     <update id="deleteByPrimaryKeys" parameterType="java.lang.Integer">
-        update tb_blog set is_deleted = 1
-        where blog_id in
-        <foreach item="id" collection="array" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </update>
-
-    <update id="batchDeleteByPrimaryKeys" parameterType="java.lang.Integer">
         update tb_blog set is_deleted = 1 where is_deleted = 0
         AND blog_id in
         <foreach collection="array" open="(" separator="," close=")" item="blogId">

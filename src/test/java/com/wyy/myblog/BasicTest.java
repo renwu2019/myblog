@@ -2,6 +2,15 @@ package com.wyy.myblog;
 
 import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
+import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
+import com.vladsch.flexmark.ext.jekyll.tag.JekyllTagExtension;
+import com.vladsch.flexmark.ext.tables.TablesExtension;
+import com.vladsch.flexmark.ext.toc.SimTocExtension;
+import com.vladsch.flexmark.ext.toc.TocExtension;
+import com.vladsch.flexmark.html.HtmlRenderer;
+import com.vladsch.flexmark.parser.Parser;
+import com.vladsch.flexmark.util.ast.Node;
+import com.vladsch.flexmark.util.data.MutableDataSet;
 import com.wyy.myblog.entity.BlogLink;
 import com.wyy.myblog.util.MyBlogUtils;
 import org.junit.jupiter.api.Test;
@@ -17,6 +26,45 @@ import java.util.stream.Collectors;
  * created by 伍猷煜 on 2022/6/14 16:58 星期二
  */
 public class BasicTest {
+
+    public String mdToHtmlForApiDoc(String md) {
+        MutableDataSet options = new MutableDataSet();
+
+        // uncomment to set optional extensions
+        options.set(Parser.EXTENSIONS, Arrays.asList(
+                TablesExtension.create(),
+                StrikethroughExtension.create(),
+                TocExtension.create()
+        ));
+
+        // uncomment to convert soft-breaks to hard breaks
+        //options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
+
+        Parser parser = Parser.builder(options).build();
+        HtmlRenderer renderer = HtmlRenderer.builder(options).build();
+
+        // You can re-use parser and renderer instances
+        Node document = parser.parse(md);
+        String html = renderer.render(document);  // "<p>This is <em>Sparta</em></p>\n"
+        // System.out.println(html);
+        return html;
+    }
+
+    @Test
+    public void testMarkDown2Html() {
+        String md = "[TOC levels=1-]\n\n# 一级标题\n" +
+                "\n" +
+                "## 二级标题\n" +
+                "\n" +
+                "## 三级标题\n" +
+                "\n" +
+                "# 一级标题2\n" +
+                "\n" +
+                "## 二级标题2";
+        String html = mdToHtmlForApiDoc(md);
+        System.out.println(html);
+
+    }
 
     @Test
     public void testURI() throws URISyntaxException {

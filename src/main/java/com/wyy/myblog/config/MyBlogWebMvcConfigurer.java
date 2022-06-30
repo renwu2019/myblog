@@ -33,19 +33,18 @@ public class MyBlogWebMvcConfigurer implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 对/upload/下资源的访问会去寻找file:Constants.FILE_UPLOAD_DIC目录下的文件
-        // upload目录也就对外暴露了，有一定风险？
         registry.addResourceHandler(Constants.RESOURCE_PATH_PREFIX + "**")
                 .addResourceLocations("file:" + Constants.FILE_UPLOAD_DIC);
     }
 
     // 解决跨域问题
-    @Override
-    public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedHeaders("*")
-                .allowedMethods("*")
-                .maxAge(1800)
-                .allowedOrigins("*");
-    }
+    // @Override
+    // public void addCorsMappings(CorsRegistry registry) {
+    //     registry.addMapping("/**")
+    //             .allowedHeaders("*")
+    //             .allowedMethods("*")
+    //             .maxAge(1800)
+    //             .allowedOrigins("*");
+    // }
 
 }

@@ -41,17 +41,33 @@
             <version>2.3.2</version>
         </dependency>
 
-        <!-- commonmark core -->
+        <!--&lt;!&ndash; commonmark core &ndash;&gt;-->
+        <!--<dependency>-->
+        <!--    <groupId>com.atlassian.commonmark</groupId>-->
+        <!--    <artifactId>commonmark</artifactId>-->
+        <!--    <version>0.17.0</version>-->
+        <!--</dependency>-->
+        <!--&lt;!&ndash; commonmark table &ndash;&gt;-->
+        <!--<dependency>-->
+        <!--    <groupId>com.atlassian.commonmark</groupId>-->
+        <!--    <artifactId>commonmark-ext-gfm-tables</artifactId>-->
+        <!--    <version>0.17.0</version>-->
+        <!--</dependency>-->
+        <!--&lt;!&ndash;扩展 标题&ndash;&gt;-->
+        <!--<dependency>-->
+        <!--    <groupId>com.atlassian.commonmark</groupId>-->
+        <!--    <artifactId>commonmark-ext-heading-anchor</artifactId>-->
+        <!--    <version>0.17.0</version>-->
+        <!--</dependency>-->
+
+        <!--flexmark 0.62
+        For Versions 0.62.2 or below, Java 8 or above, Java 9+ compatible.
+        For Versions 0.64.0 or above, Java 11 or above.
+        -->
         <dependency>
-            <groupId>com.atlassian.commonmark</groupId>
-            <artifactId>commonmark</artifactId>
-            <version>0.8.0</version>
-        </dependency>
-        <!-- commonmark table -->
-        <dependency>
-            <groupId>com.atlassian.commonmark</groupId>
-            <artifactId>commonmark-ext-gfm-tables</artifactId>
-            <version>0.8.0</version>
+            <groupId>com.vladsch.flexmark</groupId>
+            <artifactId>flexmark-all</artifactId>
+            <version>0.62.2</version>
         </dependency>
 
         <dependency>
