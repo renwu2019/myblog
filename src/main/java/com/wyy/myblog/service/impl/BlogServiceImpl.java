@@ -1,6 +1,6 @@
 package com.wyy.myblog.service.impl;
 
-import com.wyy.myblog.config.Constants;
+import cn.hutool.json.JSONUtil;
 import com.wyy.myblog.controller.vo.BlogBasicVO;
 import com.wyy.myblog.controller.vo.BlogDetailVO;
 import com.wyy.myblog.controller.vo.BlogSimpleVO;
@@ -12,7 +12,7 @@ import com.wyy.myblog.entity.BlogTagRelation;
 import com.wyy.myblog.service.BlogService;
 import com.wyy.myblog.util.*;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -41,6 +41,28 @@ public class BlogServiceImpl implements BlogService {
 
     @Resource
     private BlogCommentMapper mBlogCommentMapper;
+
+    @Resource
+    private RedisUtil mRedisUtil;
+
+    @Value("${redis.key.prefix.pv}")
+    private String REDIS_KEY_PREFIX_PV;
+
+    @Value("${redis.key.expire.pv}")
+    private Long PV_EXPIRE_SECONDS;
+
+    @Value("${redis.key.prefix.uv}")
+    private String REDIS_KEY_PREFIX_UV;
+
+    @Value("${redis.key.expire.uv}")
+    private Long UV_EXPIRE_SECONDS;
+
+    @Value("${redis.key.prefix.detail}")
+    private String REDIS_KEY_PREFIX_DETAIL;
+
+    @Value("${redis.key.expire.detail}")
+    private Long DETAIL_EXPIRE_SECONDS;
+
 
     @Override
     public int getTotalBlogs() {
@@ -301,8 +323,34 @@ public class BlogServiceImpl implements BlogService {
 
     @Override
     public BlogDetailVO getBlogDetailVOById(Long blogId) {
-        Blog blog = mBlogMapper.selectByPrimaryKey(blogId);
-        return getBlogDetailVOFromBlog(blog);
+        if (blogId == null || blogId < 1) return null;
+        String key = String.valueOf(blogId);
+        BlogDetailVO blogDetailVO;
+        if (mRedisUtil.hHasKey(REDIS_KEY_PREFIX_DETAIL, key)) {
+            // 从缓存中获取
+            Object o = mRedisUtil.hGet(REDIS_KEY_PREFIX_DETAIL, key);  // 是一个LinkedHashMap
+            String jsonStr = JSONUtil.toJsonStr(o);
+            blogDetailVO = JSONUtil.toBean(jsonStr, BlogDetailVO.class);
+        } else {
+            // 从数据库中获取
+            Blog blog = mBlogMapper.selectByPrimaryKey(blogId);
+            blogDetailVO = getBlogDetailVOFromBlog(blog);
+            // 设置博客详情缓存
+            mRedisUtil.hSet(REDIS_KEY_PREFIX_DETAIL, key, blogDetailVO, DETAIL_EXPIRE_SECONDS);
+        }
+        // 缓存中存在PV key，那么就从缓存中获取PV数据
+        if (mRedisUtil.hHasKey(REDIS_KEY_PREFIX_PV, key)) {
+            // 不能使用(Long)强转
+            Long pv = new Long(mRedisUtil.hGet(REDIS_KEY_PREFIX_PV, key).toString());
+            blogDetailVO.setBlogViews(pv);
+        } else {  // 缓存中不存在PV key，就设置PV key，同时加上过期时间
+            mRedisUtil.hSet(REDIS_KEY_PREFIX_PV, key, blogDetailVO.getBlogViews(), PV_EXPIRE_SECONDS);
+        }
+        mRedisUtil.hIncr(REDIS_KEY_PREFIX_PV, key, 1);  // 浏览量加1
+
+        return blogDetailVO;
+        // Blog blog = mBlogMapper.selectByPrimaryKey(blogId);
+        // return getBlogDetailVOFromBlog(blog);
     }
 
     /**
@@ -314,9 +362,20 @@ public class BlogServiceImpl implements BlogService {
     private BlogDetailVO getBlogDetailVOFromBlog(Blog blog) {
         // 不存在或者未发布
         if (blog == null || blog.getBlogStatus() != 1) return null;
+        // String blogId = String.valueOf(blog.getBlogId());
+        // // 缓存中存在PV key，那么就从缓存中获取PV数据
+        // if (mRedisUtil.hHasKey(REDIS_KEY_PREFIX_PV, blogId)) {
+        //     // 不能使用(Long)强转
+        //     Long pv = new Long(mRedisUtil.hGet(REDIS_KEY_PREFIX_PV, blogId).toString());
+        //     blog.setBlogViews(pv);
+        // } else {  // 缓存中不存在PV key，就设置PV key，同时加上过期时间
+        //     mRedisUtil.hSet(REDIS_KEY_PREFIX_PV, blogId, blog.getBlogViews(), PV_EXPIRE_SECONDS);
+        // }
+        // mRedisUtil.hIncr(REDIS_KEY_PREFIX_PV, blogId, 1);  // 浏览量加1
+
         //增加浏览量
-        blog.setBlogViews(blog.getBlogViews() + 1);
-        mBlogMapper.updateByPrimaryKey(blog);
+        // blog.setBlogViews(blog.getBlogViews() + 1);
+        // mBlogMapper.updateByPrimaryKey(blog);
         // 生成BlogDetailVO对象
         BlogDetailVO blogDetailVO = new BlogDetailVO();
         BeanUtils.copyProperties(blog, blogDetailVO);

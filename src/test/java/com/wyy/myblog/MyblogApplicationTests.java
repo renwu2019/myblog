@@ -3,11 +3,11 @@ package com.wyy.myblog;
 import com.wyy.myblog.dao.*;
 import com.wyy.myblog.entity.Blog;
 import com.wyy.myblog.entity.BlogCategory;
-import com.wyy.myblog.service.BlogService;
 import com.wyy.myblog.util.PageQuery;
 import org.junit.jupiter.api.Test;
-import org.omg.PortableInterceptor.INACTIVE;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -29,6 +29,37 @@ class MyblogApplicationTests {
 
     @Resource
     private BlogLinkMapper mBlogLinkMapper;
+
+    @Resource
+    private StringRedisTemplate mStringRedisTemplate;
+
+    @Resource
+    RedisTemplate<String, Object> mRedisTemplate;
+
+    @Test
+    public void testRedis() {
+        mStringRedisTemplate.opsForValue().set("a", "1");
+        System.out.println(mStringRedisTemplate.opsForValue().get("a"));
+        mStringRedisTemplate.opsForValue().increment("a");
+        System.out.println(mStringRedisTemplate.opsForValue().get("a"));
+
+        // put报错： java.lang.Integer cannot be cast to java.lang.String
+        // mStringRedisTemplate.opsForHash().put("b", "b1", 1);
+        // StringRedisTemplate 的hashValue因为使用了StringRedisSerializer，序列化时调用下面这个方法
+        // public byte[] serialize(@Nullable String string) ，如果传入整型就会报错了。
+        mStringRedisTemplate.opsForHash().put("b", "b1", "1");
+        mStringRedisTemplate.opsForHash().increment("b", "b1", 1);
+        System.out.println("hash增：" + mStringRedisTemplate.opsForHash().get("b", "b1"));
+
+        mRedisTemplate.opsForHash().put("c", "c1", 1);
+        // mRedisTemplate.opsForHash().put("c", "b1", "1");
+        mRedisTemplate.opsForHash().increment("c", "c1", 1);
+        // SerializationException: Cannot deserialize
+        // 解决：在redisConfig中设置HashValue序列化：redisTemplate.setHashValueSerializer(jackson2JsonRedisSerializer);
+        System.out.println("hash增：" + mRedisTemplate.opsForHash().get("c", "c1"));
+
+        // Redis几种序列化方式：https://www.csdn.net/tags/Mtzakg5sMzMzNTEtYmxvZwO0O0OO0O0O.html
+    }
 
     @Test
     void contextLoads() {

@@ -1,11 +1,8 @@
 package com.wyy.myblog;
 
-import cn.hutool.core.date.DateUnit;
 import cn.hutool.core.date.DateUtil;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
-import com.vladsch.flexmark.ext.jekyll.tag.JekyllTagExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
-import com.vladsch.flexmark.ext.toc.SimTocExtension;
 import com.vladsch.flexmark.ext.toc.TocExtension;
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
@@ -18,7 +15,6 @@ import org.springframework.util.StringUtils;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.text.DateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,6 +22,22 @@ import java.util.stream.Collectors;
  * created by 伍猷煜 on 2022/6/14 16:58 星期二
  */
 public class BasicTest {
+
+
+    @Test  // 类型转换测试
+    public void testCast() {
+        Integer a = 10;
+        System.out.println(a.longValue());
+
+        Object b = 10;
+        Object c = "10";
+        Object d = "a";
+        // java.lang.Integer cannot be cast to java.lang.Long
+        // Long b1 = (Long) b;  // fail
+        System.out.println(new Long(a));  // success
+        System.out.println(new Long(c.toString()));  // success
+        System.out.println(new Long(d.toString()));  // fail
+    }
 
     public String mdToHtmlForApiDoc(String md) {
         MutableDataSet options = new MutableDataSet();
