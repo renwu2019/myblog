@@ -14,7 +14,7 @@ public interface BlogTagService {
 
     int getTotalBlogTags();
 
-    PageResult getTagsPages(PageQuery pageQuery);
+    PageResult<BlogTag> getTagsPages(PageQuery pageQuery);
 
     /**
      * 获取标签对应博客数量

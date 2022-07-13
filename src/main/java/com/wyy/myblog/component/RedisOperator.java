@@ -1,4 +1,4 @@
-package com.wyy.myblog.util;
+package com.wyy.myblog.component;
 
 import org.springframework.data.redis.core.BoundListOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * SpringBoot+Redis简单实现文章浏览量记录 https://blog.csdn.net/wl_Honest/article/details/123082306
  */
 @Component
-public class RedisUtil {
+public class RedisOperator {
 
     @Resource
     private RedisTemplate<String, Object> redisTemplate;

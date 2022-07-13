@@ -28,10 +28,10 @@ public class BlogLinkServiceImpl implements BlogLinkService {
     }
 
     @Override
-    public PageResult getLinksPages(PageQuery pageQuery) {
+    public PageResult<BlogLink> getLinksPages(PageQuery pageQuery) {
         List<BlogLink> blogLinks = mBlogLinkMapper.getLinkList(pageQuery);
         int total = mBlogLinkMapper.getTotalBlogLinks(pageQuery);
-        return new PageResult(total, pageQuery.getLimit(), pageQuery.getPage(), blogLinks);
+        return new PageResult<>(total, pageQuery.getLimit(), pageQuery.getPage(), blogLinks);
     }
 
     @Override

@@ -7,7 +7,7 @@ import java.util.List;
  * created by 伍猷煜 on 2022/6/16 21:16 星期四
  * 分页查询结果
  */
-public class PageResult implements Serializable {
+public class PageResult<T> implements Serializable {
 
     // 总记录数
     private int totalCount;
@@ -22,9 +22,14 @@ public class PageResult implements Serializable {
     private int currPage;
 
     // 当前页数据
-    private List<?> list;
+    private List<T> list;
 
-    public PageResult(int totalCount, int pageSize, int currPage, List<?> list) {
+    // 在使用Hutool的jsonToBean传入new TypeReference<PageResult<BlogComment>>() {}时，
+    // 会调用newInstanceIfPossible，该方法尝试遍历并调用此类的所有构造方法，直到构造成功并返回，
+    // 如果没有构造成功的，直接返回null，导致json转带泛型参数的bean失败。因此，这里需要无参构造函数。
+    public PageResult() {}
+
+    public PageResult(int totalCount, int pageSize, int currPage, List<T> list) {
         this.totalCount = totalCount;
         this.pageSize = pageSize;
         this.totalPage = (totalCount + pageSize - 1) / pageSize;  // 向上取正
@@ -64,11 +69,11 @@ public class PageResult implements Serializable {
         this.currPage = currPage;
     }
 
-    public List<?> getList() {
+    public List<T> getList() {
         return list;
     }
 
-    public void setList(List<?> list) {
+    public void setList(List<T> list) {
         this.list = list;
     }
 }

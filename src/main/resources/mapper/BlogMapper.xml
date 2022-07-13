@@ -145,7 +145,7 @@
         where blog_id = #{blogId, jdbcType=BIGINT}
     </update>
 
-    <update id="deleteByPrimaryKeys" parameterType="java.lang.Integer">
+    <update id="deleteByPrimaryKeys" parameterType="java.lang.Long">
         update tb_blog set is_deleted = 1 where is_deleted = 0
         AND blog_id in
         <foreach collection="array" open="(" separator="," close=")" item="blogId">

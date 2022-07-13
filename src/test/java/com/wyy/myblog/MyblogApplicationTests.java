@@ -1,10 +1,17 @@
 package com.wyy.myblog;
 
+import com.rabbitmq.client.AMQP;
 import com.wyy.myblog.dao.*;
+import com.wyy.myblog.dto.QueueEnum;
 import com.wyy.myblog.entity.Blog;
 import com.wyy.myblog.entity.BlogCategory;
 import com.wyy.myblog.util.PageQuery;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.amqp.core.AmqpTemplate;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -14,6 +21,8 @@ import java.util.*;
 
 @SpringBootTest
 class MyblogApplicationTests {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MyblogApplicationTests.class);
 
     @Resource
     private BlogMapper mBlogMapper;
@@ -35,6 +44,23 @@ class MyblogApplicationTests {
 
     @Resource
     RedisTemplate<String, Object> mRedisTemplate;
+
+    @Resource
+    AmqpTemplate mAmqpTemplate;
+
+    @Test
+    public void testRabbitMQProducer() {
+        mAmqpTemplate.convertAndSend(
+                QueueEnum.QUEUE_BLOG_VIEWS.getExchange(),
+                QueueEnum.QUEUE_BLOG_VIEWS.getRoutingKey(),
+                "hello");
+    }
+
+    @RabbitListener(queues = "myblog.blog.blogviews")
+    public void testRabbitMQConsumer(String msg, Message message) {
+        LOGGER.debug("msg: {}, message: {}", msg, message);
+        // mAmqpTemplate.receiveAndConvert();
+    }
 
     @Test
     public void testRedis() {

@@ -48,7 +48,7 @@ public class TagController {
             return ResultUtil.fail(404, "参数异常！");
         }
         PageQuery pageQuery = new PageQuery(params);
-        PageResult data = mBlogTagService.getTagsPages(pageQuery);
+        PageResult<BlogTag> data = mBlogTagService.getTagsPages(pageQuery);
         return ResultUtil.success(data);
     }
 

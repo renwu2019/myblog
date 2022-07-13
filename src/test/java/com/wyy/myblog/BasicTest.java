@@ -1,6 +1,7 @@
 package com.wyy.myblog;
 
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.json.JSONUtil;
 import com.vladsch.flexmark.ext.gfm.strikethrough.StrikethroughExtension;
 import com.vladsch.flexmark.ext.tables.TablesExtension;
 import com.vladsch.flexmark.ext.toc.TocExtension;
@@ -26,6 +27,8 @@ public class BasicTest {
 
     @Test  // 类型转换测试
     public void testCast() {
+        int t = 123_456;
+        System.out.println(t);
         Integer a = 10;
         System.out.println(a.longValue());
 
@@ -189,5 +192,21 @@ public class BasicTest {
     public void testHuTool() {
         // DateUtil
         System.out.println(DateUtil.format(new Date(), "yyyyMMdd_HHmmss"));
+        // JSONUtil
+        Map<String, String> map = new HashMap<>();
+        map.put("a", "1");
+        map.put("b", "2");
+        String json = JSONUtil.toJsonStr(map);
+        System.out.println(json);
+        HashMap<?, ?> map1 = JSONUtil.toBean(json, HashMap.class);
+        @SuppressWarnings("unchecked")
+        HashMap<String, String> map2 = JSONUtil.toBean(json, HashMap.class);
+        HashMap<String, String> newMap = new HashMap<>();
+        for (Map.Entry<?, ?> entry : map1.entrySet()) {
+            Object key = entry.getKey();
+            Object value = entry.getValue();
+            newMap.put(key.toString(), value.toString());
+        }
+
     }
 }

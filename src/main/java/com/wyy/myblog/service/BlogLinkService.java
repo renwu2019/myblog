@@ -14,7 +14,7 @@ public interface BlogLinkService {
 
     int getTotalBLogLinks();
 
-    PageResult getLinksPages(PageQuery pageQuery);
+    PageResult<BlogLink> getLinksPages(PageQuery pageQuery);
 
     BlogLink getLinkById(Integer linkId);
 

@@ -11,15 +11,15 @@ public interface BlogCommentService {
 
     int getTotalBlogComments();
 
-    PageResult getCommentsPages(PageQuery pageQuery);
+    PageResult<BlogComment> getCommentsPages(PageQuery pageQuery);
 
-    Boolean batchAudit(Integer[] ids);
+    Boolean batchAudit(Long[] ids);
 
-    Boolean batchDelete(Integer[] ids);
+    Boolean batchDelete(Long[] ids);
 
     Boolean reply(Long commentId, String replyBody);
 
-    PageResult getCommentPageByBlogId(Long blogId, Integer commentPage);
+    PageResult<BlogComment> getCommentPageByBlogId(Long blogId, Integer commentPage);
 
     Boolean addComment(BlogComment blogComment);
 }

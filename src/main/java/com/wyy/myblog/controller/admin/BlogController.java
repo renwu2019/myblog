@@ -56,7 +56,7 @@ public class BlogController {
             return ResultUtil.fail(404, "参数异常！");
         }
         PageQuery pageQuery = new PageQuery(params);
-        PageResult data = mBlogService.getBlogsPages(pageQuery);
+        PageResult<Blog> data = mBlogService.getBlogsPages(pageQuery);
         return ResultUtil.success(data);
     }
 
@@ -224,7 +224,7 @@ public class BlogController {
      */
     @PostMapping("/delete")
     @ResponseBody
-    public Result<?> delete(@RequestBody Integer[] ids) {
+    public Result<?> delete(@RequestBody Long[] ids) {
         if (ids == null || ids.length < 1) {
             return ResultUtil.fail("参数异常");
         }

@@ -11,13 +11,27 @@ spring:
         max-idle: 8 # 连接池中的最大空闲连接
         min-idle: 0 # 连接池中的最小空闲连接
     timeout: 3000ms # 连接超时时间（毫秒）
+  rabbitmq:
+    host: localhost # rabbitmq的连接地址
+    port: 5672 # rabbitmq的连接端口号
+    virtual-host: /myblog # rabbitmq的虚拟host
+    username: myblog
+    password: myblog
+    # publisher-confirms: true # 如果对异步消息需要回调必须设置为true 被弃用了，使用下面这个
+    publisher-confirm-type: correlated
+    publisher-returns: true # 表示接收mq返回的确认消息
+
+
 redis:
   key:
     prefix:
-      pv: blog:pv
-      uv: blog:uv
-      detail: blog:detail
+      pv: blog:pv # 博客阅读量（每次阅读都累加）
+      uv: blog:uv # 博客阅读量（不同用户，一天时间内）
+      detail: blog:detail  # 博客详情数据
+      comment: blog:comment  # 博客评论
+      config: blog:config  # 博客配置项 永不过期，更新时再删除即可
     expire:
       pv: 3600 # 24 * 60 * 60 = 90000 - 36 = 89964s
       uv: 3600  # 24 * 60 * 60
       detail: 3600
+      comment: 3600

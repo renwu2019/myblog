@@ -48,7 +48,7 @@ public class LinkController {
             return ResultUtil.fail(404, "参数异常！");
         }
         PageQuery pageQuery = new PageQuery(params);
-        PageResult data = mBlogLinkService.getLinksPages(pageQuery);
+        PageResult<BlogLink> data = mBlogLinkService.getLinksPages(pageQuery);
         return ResultUtil.success(data);
     }
 

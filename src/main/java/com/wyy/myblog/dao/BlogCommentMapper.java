@@ -16,9 +16,9 @@ public interface BlogCommentMapper {
 
     List<BlogComment> getBlogCommentsList(PageQuery pageQuery);
 
-    int batchAudit(Integer[] ids);
+    int batchAudit(Long[] ids);
 
-    int batchDelete(Integer[] ids);
+    int batchDelete(Long[] ids);
 
     BlogComment selectByPrimaryKey(Long commentId);
 

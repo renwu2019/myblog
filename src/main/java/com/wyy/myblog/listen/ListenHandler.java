@@ -2,7 +2,7 @@ package com.wyy.myblog.listen;
 
 import com.wyy.myblog.dao.BlogMapper;
 import com.wyy.myblog.entity.Blog;
-import com.wyy.myblog.util.RedisUtil;
+import com.wyy.myblog.component.RedisOperator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,7 +33,7 @@ public class ListenHandler  {
     private BlogMapper mBlogMapper;
 
     @Resource
-    private RedisUtil mRedisUtil;
+    private RedisOperator mRedisOperator;
 
     @Value("${redis.key.prefix.pv}")
     private String REDIS_KEY_PREFIX_PV;
@@ -63,7 +63,7 @@ public class ListenHandler  {
     public void afterDestroy() {
         log.info("开始关闭...");
         //将redis中的数据写入数据库
-        Map<Object, Object> blogPV = mRedisUtil.hEntryGet(REDIS_KEY_PREFIX_PV);
+        Map<Object, Object> blogPV = mRedisOperator.hEntryGet(REDIS_KEY_PREFIX_PV);
         writeNum(blogPV, REDIS_KEY_PREFIX_PV);
         log.info("redis写入数据库完毕");
     }
@@ -74,9 +74,9 @@ public class ListenHandler  {
     @Scheduled(cron = "0 */1 * * * ?")  // 每分钟执行一次
     public void updateNum() {
         log.info("周期任务开始执行...");
-        Map<Object, Object> blogPV = mRedisUtil.hEntryGet(REDIS_KEY_PREFIX_PV);
+        Map<Object, Object> blogPV = mRedisOperator.hEntryGet(REDIS_KEY_PREFIX_PV);
         writeNum(blogPV, REDIS_KEY_PREFIX_PV);
-        log.info("周期任务执行完毕,redis写入数据库完毕, 写入数据：{}", blogPV.entrySet().toString());
+        log.info("周期任务执行完毕,redis写入数据库完毕, 写入{}数据：{}",REDIS_KEY_PREFIX_PV, blogPV.entrySet().toString());
     }
 
     private void writeNum(Map<Object, Object> map, String fieldName) {
@@ -93,7 +93,6 @@ public class ListenHandler  {
                 mBlogMapper.updateByPrimaryKeySelective(blog);
             }
         }
-        log.info("{} 更新完毕", fieldName);
     }
 
 

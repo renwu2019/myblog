@@ -1,5 +1,6 @@
 package com.wyy.myblog.service;
 
+import com.wyy.myblog.controller.vo.BlogBasicVO;
 import com.wyy.myblog.controller.vo.BlogDetailVO;
 import com.wyy.myblog.controller.vo.BlogSimpleVO;
 import com.wyy.myblog.entity.Blog;
@@ -15,11 +16,11 @@ public interface BlogService {
 
     int getTotalBlogs();
 
-    PageResult getBlogsPages(PageQuery pageQuery);
+    PageResult<Blog> getBlogsPages(PageQuery pageQuery);
 
     Blog getBlogById(Long blogId);
 
-    Boolean batchDeleteBlogs(Integer[] ids);
+    Boolean batchDeleteBlogs(Long[] ids);
 
     String saveBlog(Blog blog);
 
@@ -30,13 +31,13 @@ public interface BlogService {
      * @param pageNum
      * @return
      */
-    PageResult getBlogBasicVOPage(Integer pageNum);
+    PageResult<BlogBasicVO> getBlogBasicVOPage(Integer pageNum);
 
-    PageResult getBlogBasicVOByCategory(String categoryName, Integer pageNum);
+    PageResult<BlogBasicVO> getBlogBasicVOByCategory(String categoryName, Integer pageNum);
 
-    PageResult getBlogBasicVOByTag(String tagName, Integer pageNum);
+    PageResult<BlogBasicVO> getBlogBasicVOByTag(String tagName, Integer pageNum);
 
-    PageResult getBlogBasicVOByKeyword(String keyword, Integer pageNum);
+    PageResult<BlogBasicVO> getBlogBasicVOByKeyword(String keyword, Integer pageNum);
 
     /**
      * 获取按某个条件排序后的博客简单数据

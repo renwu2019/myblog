@@ -13,7 +13,7 @@ public interface BlogCategoryService {
 
     int getTotalBlogCategories();
 
-    PageResult getCategoriesPages(PageQuery pageQuery);
+    PageResult<BlogCategory> getCategoriesPages(PageQuery pageQuery);
 
     List<BlogCategory> getAllCategories();
 

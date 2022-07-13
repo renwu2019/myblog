@@ -1,5 +1,6 @@
 package com.wyy.myblog.controller.blog;
 
+import com.wyy.myblog.controller.vo.BlogBasicVO;
 import com.wyy.myblog.controller.vo.BlogDetailVO;
 import com.wyy.myblog.entity.BlogComment;
 import com.wyy.myblog.entity.BlogLink;
@@ -53,7 +54,7 @@ public class MyBlogController {
 
     @GetMapping("/page/{pageNum}")
     public String page(HttpServletRequest request, @PathVariable("pageNum") Integer pageNum) {
-        PageResult pageResult = mBlogService.getBlogBasicVOPage(pageNum);
+        PageResult<BlogBasicVO> pageResult = mBlogService.getBlogBasicVOPage(pageNum);
         if (pageResult == null) {
             return "error/error_404";
         }
@@ -82,6 +83,17 @@ public class MyBlogController {
         request.setAttribute("pageName", "详情");
         request.setAttribute("configurations", mConfigurationService.getAllConfigs());
         return "blog/" + mTheme + "/detail";
+    }
+
+    /**
+     * 测试当前环境下，最简单的接口并发处理能力。
+     * @param request
+     * @return
+     */
+    @GetMapping("/blog/test")
+    @ResponseBody
+    public Result<?> test(HttpServletRequest request) {
+        return ResultUtil.success();
     }
 
     /**
@@ -140,7 +152,7 @@ public class MyBlogController {
     public String categoryPage(HttpServletRequest request,
                                @PathVariable("categoryName") String categoryName,
                                @PathVariable("pageNum") Integer pageNum) {
-        PageResult pageResult = mBlogService.getBlogBasicVOByCategory(categoryName, pageNum);
+        PageResult<BlogBasicVO> pageResult = mBlogService.getBlogBasicVOByCategory(categoryName, pageNum);
         request.setAttribute("pageUrl", "category");
         request.setAttribute("keyword", categoryName);
         request.setAttribute("blogPageResult", pageResult);
@@ -165,7 +177,7 @@ public class MyBlogController {
     public String tagPage(HttpServletRequest request,
                           @PathVariable("tagName") String tagName,
                           @PathVariable("pageNum") Integer pageNum) {
-        PageResult pageResult = mBlogService.getBlogBasicVOByTag(tagName, pageNum);
+        PageResult<BlogBasicVO> pageResult = mBlogService.getBlogBasicVOByTag(tagName, pageNum);
         request.setAttribute("pageUrl", "tag");
         request.setAttribute("keyword", tagName);
         request.setAttribute("blogPageResult", pageResult);
@@ -189,7 +201,7 @@ public class MyBlogController {
     public String searchPage(HttpServletRequest request,
                              @PathVariable("keyword") String keyword,
                              @PathVariable("pageNum") Integer pageNum) {
-        PageResult pageResult = mBlogService.getBlogBasicVOByKeyword(keyword, pageNum);
+        PageResult<BlogBasicVO> pageResult = mBlogService.getBlogBasicVOByKeyword(keyword, pageNum);
         request.setAttribute("pageUrl", "search");
         request.setAttribute("keyword", keyword);
         request.setAttribute("blogPageResult", pageResult);

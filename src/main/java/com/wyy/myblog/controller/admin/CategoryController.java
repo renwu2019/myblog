@@ -1,5 +1,6 @@
 package com.wyy.myblog.controller.admin;
 
+import com.wyy.myblog.entity.BlogCategory;
 import com.wyy.myblog.service.BlogCategoryService;
 import com.wyy.myblog.util.PageQuery;
 import com.wyy.myblog.util.PageResult;
@@ -48,7 +49,7 @@ public class CategoryController {
             return ResultUtil.fail(404, "参数异常！");
         }
         PageQuery pageQuery = new PageQuery(params);
-        PageResult data = mBlogCategoryService.getCategoriesPages(pageQuery);
+        PageResult<BlogCategory> data = mBlogCategoryService.getCategoriesPages(pageQuery);
         return ResultUtil.success(data);
     }
 

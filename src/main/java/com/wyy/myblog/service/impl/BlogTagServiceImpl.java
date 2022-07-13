@@ -33,10 +33,10 @@ public class BlogTagServiceImpl implements BlogTagService {
     }
 
     @Override
-    public PageResult getTagsPages(PageQuery pageQuery) {
+    public PageResult<BlogTag> getTagsPages(PageQuery pageQuery) {
         List<BlogTag> tagList = mBlogTagMapper.getTagList(pageQuery);
         int total = mBlogTagMapper.getTotalBlogTags(pageQuery);
-        return new PageResult(total, pageQuery.getLimit(), pageQuery.getPage(), tagList);
+        return new PageResult<>(total, pageQuery.getLimit(), pageQuery.getPage(), tagList);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.wyy.myblog.controller.admin;
 
+import com.wyy.myblog.entity.BlogComment;
 import com.wyy.myblog.service.BlogCommentService;
 import com.wyy.myblog.util.PageQuery;
 import com.wyy.myblog.util.PageResult;
@@ -48,7 +49,7 @@ public class CommentController {
             return ResultUtil.fail(404, "参数异常！");
         }
         PageQuery pageQuery = new PageQuery(params);
-        PageResult data = mBlogCommentService.getCommentsPages(pageQuery);
+        PageResult<BlogComment> data = mBlogCommentService.getCommentsPages(pageQuery);
         return ResultUtil.success(data);
     }
 
@@ -59,7 +60,7 @@ public class CommentController {
      */
     @PostMapping("/batchAudit")
     @ResponseBody
-    public Result<?> batchAudit(@RequestBody Integer[] ids) {
+    public Result<?> batchAudit(@RequestBody Long[] ids) {
         if (ids.length < 1) {
             return ResultUtil.fail("参数异常！");
         }
@@ -77,7 +78,7 @@ public class CommentController {
      */
     @PostMapping("/batchDelete")
     @ResponseBody
-    public Result<?> batchDelete(@RequestBody Integer[] ids) {
+    public Result<?> batchDelete(@RequestBody Long[] ids) {
         if (ids.length < 1) {
             return ResultUtil.fail("参数异常");
         }

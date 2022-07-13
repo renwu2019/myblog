@@ -1,6 +1,8 @@
 package com.wyy.myblog.service.impl;
 
 import cn.hutool.json.JSONUtil;
+import com.wyy.myblog.component.RabbitMQSender;
+import com.wyy.myblog.component.RedisOperator;
 import com.wyy.myblog.controller.vo.BlogBasicVO;
 import com.wyy.myblog.controller.vo.BlogDetailVO;
 import com.wyy.myblog.controller.vo.BlogSimpleVO;
@@ -43,7 +45,10 @@ public class BlogServiceImpl implements BlogService {
     private BlogCommentMapper mBlogCommentMapper;
 
     @Resource
-    private RedisUtil mRedisUtil;
+    private RedisOperator mRedisOperator;
+
+    @Resource
+    private RabbitMQSender mRabbitMQSender;
 
     @Value("${redis.key.prefix.pv}")
     private String REDIS_KEY_PREFIX_PV;
@@ -70,10 +75,10 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public PageResult getBlogsPages(PageQuery pageQuery) {
+    public PageResult<Blog> getBlogsPages(PageQuery pageQuery) {
         List<Blog> blogs = mBlogMapper.getBlogList(pageQuery);
         int total = mBlogMapper.getTotalBlogs(pageQuery);
-        return new PageResult(total, pageQuery.getLimit(), pageQuery.getPage(), blogs);
+        return new PageResult<>(total, pageQuery.getLimit(), pageQuery.getPage(), blogs);
     }
 
     @Override
@@ -82,8 +87,12 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public Boolean batchDeleteBlogs(Integer[] ids) {
-        return mBlogMapper.deleteByPrimaryKeys(ids) > 0;
+    public Boolean batchDeleteBlogs(Long[] ids) {
+        boolean success = mBlogMapper.deleteByPrimaryKeys(ids) > 0;
+        if (success) { // 删除博客详情缓存
+            deleteKeyBlogDetailByBlogIds(ids);
+        }
+        return success;
     }
 
     /**
@@ -228,6 +237,8 @@ public class BlogServiceImpl implements BlogService {
             mBlogTagRelationMapper.deleteByBlogId(blog.getBlogId());
             // 插入新的博客标签关系
             if (mBlogTagRelationMapper.batchInsertSelective(blogTagRelations) > 0) {
+                // 删除博客详情缓存
+                deleteKeyBlogDetailByBlogId(blog.getBlogId());
                 return "success";
             }
         }
@@ -235,7 +246,7 @@ public class BlogServiceImpl implements BlogService {
     }
 
     @Override
-    public PageResult getBlogBasicVOPage(Integer pageNum) {
+    public PageResult<BlogBasicVO> getBlogBasicVOPage(Integer pageNum) {
         Map<String, Object> params = new HashMap<>();
         params.put("page", pageNum);
         params.put("limit", 8);  // 分页大小为8
@@ -245,11 +256,11 @@ public class BlogServiceImpl implements BlogService {
         if (blogs.size() == 0) return null;
         List<BlogBasicVO> blogBasicVOS = getBlogBasicVOFromBlog(blogs);
         int total = mBlogMapper.getTotalBlogs(pageQuery);
-        return new PageResult(total, pageQuery.getLimit(), pageQuery.getPage(), blogBasicVOS);
+        return new PageResult<>(total, pageQuery.getLimit(), pageQuery.getPage(), blogBasicVOS);
     }
 
     @Override
-    public PageResult getBlogBasicVOByCategory(String categoryName, Integer pageNum) {
+    public PageResult<BlogBasicVO> getBlogBasicVOByCategory(String categoryName, Integer pageNum) {
         if (!PatternUtil.validKeyword(categoryName) || pageNum < 1) return null;
         // 这里为什么不在博客表根据博客分类名直接查询？因为返回的BlogBasicVO中的blogCategoryIcon字段博客表中没有
         // 因此必须把分类表中的信息查出来。。这样，其实博客表中的分类名冗余字段感觉也是没必要的。。
@@ -269,11 +280,11 @@ public class BlogServiceImpl implements BlogService {
         List<Blog> blogs = mBlogMapper.getBlogList(pageQuery);
         List<BlogBasicVO> blogBasicVOS = getBlogBasicVOFromBlog(blogs);
         int total = mBlogMapper.getTotalBlogs(pageQuery);
-        return new PageResult(total, pageQuery.getLimit(), pageQuery.getPage(), blogBasicVOS);
+        return new PageResult<>(total, pageQuery.getLimit(), pageQuery.getPage(), blogBasicVOS);
     }
 
     @Override
-    public PageResult getBlogBasicVOByTag(String tagName, Integer pageNum) {
+    public PageResult<BlogBasicVO> getBlogBasicVOByTag(String tagName, Integer pageNum) {
         if (!PatternUtil.validKeyword(tagName) || pageNum < 1) return null;
         BlogTag blogTag = mBlogTagMapper.selectByTagName(tagName);
         if (blogTag == null) return null;
@@ -285,11 +296,11 @@ public class BlogServiceImpl implements BlogService {
         List<Blog> blogs = mBlogMapper.getBlogsByTagId(pageQuery);
         int total = mBlogMapper.getTotalBlogs(pageQuery);
         List<BlogBasicVO> blogBasicVOS = getBlogBasicVOFromBlog(blogs);
-        return new PageResult(total, pageQuery.getLimit(), pageQuery.getPage(), blogBasicVOS);
+        return new PageResult<>(total, pageQuery.getLimit(), pageQuery.getPage(), blogBasicVOS);
     }
 
     @Override
-    public PageResult getBlogBasicVOByKeyword(String keyword, Integer pageNum) {
+    public PageResult<BlogBasicVO> getBlogBasicVOByKeyword(String keyword, Integer pageNum) {
         if (!PatternUtil.validKeyword(keyword) || pageNum < 1) return null;
         Map<String, Object> params = new HashMap<>();
         params.put("page", pageNum);
@@ -300,7 +311,7 @@ public class BlogServiceImpl implements BlogService {
         List<Blog> blogList = mBlogMapper.getBlogList(pageQuery);
         List<BlogBasicVO> blogBasicVOS = getBlogBasicVOFromBlog(blogList);
         int total = mBlogMapper.getTotalBlogs(pageQuery);
-        return new PageResult(total, pageQuery.getLimit(), pageQuery.getPage(), blogBasicVOS);
+        return new PageResult<>(total, pageQuery.getLimit(), pageQuery.getPage(), blogBasicVOS);
     }
 
     @Override
@@ -324,11 +335,12 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public BlogDetailVO getBlogDetailVOById(Long blogId) {
         if (blogId == null || blogId < 1) return null;
-        String key = String.valueOf(blogId);
+        // 获取blog详情数据
+        String keyBlogDetail = REDIS_KEY_PREFIX_DETAIL + ":" + blogId;
         BlogDetailVO blogDetailVO;
-        if (mRedisUtil.hHasKey(REDIS_KEY_PREFIX_DETAIL, key)) {
+        if (mRedisOperator.hasKey(keyBlogDetail)) {
             // 从缓存中获取
-            Object o = mRedisUtil.hGet(REDIS_KEY_PREFIX_DETAIL, key);  // 是一个LinkedHashMap
+            Object o = mRedisOperator.get(keyBlogDetail);
             String jsonStr = JSONUtil.toJsonStr(o);
             blogDetailVO = JSONUtil.toBean(jsonStr, BlogDetailVO.class);
         } else {
@@ -336,17 +348,22 @@ public class BlogServiceImpl implements BlogService {
             Blog blog = mBlogMapper.selectByPrimaryKey(blogId);
             blogDetailVO = getBlogDetailVOFromBlog(blog);
             // 设置博客详情缓存
-            mRedisUtil.hSet(REDIS_KEY_PREFIX_DETAIL, key, blogDetailVO, DETAIL_EXPIRE_SECONDS);
+            mRedisOperator.set(keyBlogDetail, blogDetailVO, DETAIL_EXPIRE_SECONDS);
         }
         // 缓存中存在PV key，那么就从缓存中获取PV数据
-        if (mRedisUtil.hHasKey(REDIS_KEY_PREFIX_PV, key)) {
+        String blogPVKey = String.valueOf(blogId);
+        if (mRedisOperator.hHasKey(REDIS_KEY_PREFIX_PV, blogPVKey)) {
             // 不能使用(Long)强转
-            Long pv = new Long(mRedisUtil.hGet(REDIS_KEY_PREFIX_PV, key).toString());
+            Long pv = new Long(mRedisOperator.hGet(REDIS_KEY_PREFIX_PV, blogPVKey).toString());
             blogDetailVO.setBlogViews(pv);
         } else {  // 缓存中不存在PV key，就设置PV key，同时加上过期时间
-            mRedisUtil.hSet(REDIS_KEY_PREFIX_PV, key, blogDetailVO.getBlogViews(), PV_EXPIRE_SECONDS);
+            mRedisOperator.hSet(REDIS_KEY_PREFIX_PV, blogPVKey, blogDetailVO.getBlogViews(), PV_EXPIRE_SECONDS);
         }
-        mRedisUtil.hIncr(REDIS_KEY_PREFIX_PV, key, 1);  // 浏览量加1
+
+        // // 异步累加，经测试还没有直接操作快，原因分析：直接操作内存就已经很快了，发送消息出去这个操作可能都还没有直接操作累加计数快。
+        // 具体场景具体分析，像这种场景就不太适合RabbitMQ进行异步处理，
+        // mRabbitMQSender.sendMsgIncrementBlogViews(blogId);
+        mRedisOperator.hIncr(REDIS_KEY_PREFIX_PV, blogPVKey, 1);  // 浏览量加1
 
         return blogDetailVO;
         // Blog blog = mBlogMapper.selectByPrimaryKey(blogId);
@@ -439,5 +456,19 @@ public class BlogServiceImpl implements BlogService {
             blogBasicVOS.add(basicVO);
         }
         return blogBasicVOS;
+    }
+
+    /**
+     * 删除博客详情缓存
+     * @param blogId
+     */
+    private void deleteKeyBlogDetailByBlogId(Long blogId) {
+        mRedisOperator.del(REDIS_KEY_PREFIX_DETAIL + ":" + blogId);
+    }
+
+    private void deleteKeyBlogDetailByBlogIds(Long[] blogIds) {
+        for (Long blogId : blogIds) {
+            deleteKeyBlogDetailByBlogId(blogId);
+        }
     }
 }

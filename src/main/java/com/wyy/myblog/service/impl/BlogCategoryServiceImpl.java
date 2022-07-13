@@ -30,10 +30,10 @@ public class BlogCategoryServiceImpl implements BlogCategoryService {
     }
 
     @Override
-    public PageResult getCategoriesPages(PageQuery pageQuery) {
+    public PageResult<BlogCategory> getCategoriesPages(PageQuery pageQuery) {
         List<BlogCategory> blogCategoriesList = mBlogCategoryMapper.getBlogCategoryList(pageQuery);
         int total = mBlogCategoryMapper.getTotalBlogCategories(pageQuery);
-        return new PageResult(total, pageQuery.getLimit(), pageQuery.getPage(), blogCategoriesList);
+        return new PageResult<>(total, pageQuery.getLimit(), pageQuery.getPage(), blogCategoriesList);
     }
 
     @Override
