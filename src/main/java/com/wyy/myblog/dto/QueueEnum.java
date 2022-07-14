@@ -5,8 +5,11 @@ package com.wyy.myblog.dto;
  * 消息队列枚举配置 用于消息队列的常量定义，包括交换机名称、队列名称、路由键名称。
  */
 public enum QueueEnum {
-
-    QUEUE_BLOG_VIEWS("myblog.blog.direct", "myblog.blog.blogviews", "myblog.blog.blogviews");
+    // 交换器
+    EXCHANGE_BLOG("myblog.blog.direct", "", ""),
+    // 队列
+    QUEUE_BLOG_ES(EXCHANGE_BLOG.getExchange(), "myblog.blog.es", "myblog.blog.es"),
+    QUEUE_BLOG_VIEWS(EXCHANGE_BLOG.getExchange(), "myblog.blog.blogviews", "myblog.blog.blogviews");
 
     /**
      * 交换器

@@ -6,6 +6,8 @@ import com.wyy.myblog.entity.BlogComment;
 import com.wyy.myblog.entity.BlogLink;
 import com.wyy.myblog.service.*;
 import com.wyy.myblog.util.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -23,12 +25,16 @@ import java.util.Map;
 @Controller
 public class MyBlogController {
 
+    private static final Logger log = LoggerFactory.getLogger(MyBlogController.class);
+
     private static final String mTheme = "amaze";
     //public static final String theme = "default";
     //public static final String theme = "yummy-jekyll";
 
     @Resource
     private BlogService mBlogService;
+
+    @Resource EsBlogService mEsBlogService;
 
     @Resource
     private BlogTagService mBlogTagService;
@@ -201,7 +207,11 @@ public class MyBlogController {
     public String searchPage(HttpServletRequest request,
                              @PathVariable("keyword") String keyword,
                              @PathVariable("pageNum") Integer pageNum) {
-        PageResult<BlogBasicVO> pageResult = mBlogService.getBlogBasicVOByKeyword(keyword, pageNum);
+        // 数据库中查找
+        // PageResult<BlogBasicVO> pageResult = mBlogService.getBlogBasicVOByKeyword(keyword, pageNum);
+        // ES中查找
+        log.debug("搜索请求：keyword = {}, pageNum = {}", keyword, pageNum); // 用户理解的页号从1开始，程序理解的是从0开始
+        PageResult<BlogBasicVO> pageResult = mEsBlogService.search(keyword, pageNum, 9);
         request.setAttribute("pageUrl", "search");
         request.setAttribute("keyword", keyword);
         request.setAttribute("blogPageResult", pageResult);

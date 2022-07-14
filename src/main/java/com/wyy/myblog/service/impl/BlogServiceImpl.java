@@ -7,6 +7,8 @@ import com.wyy.myblog.controller.vo.BlogBasicVO;
 import com.wyy.myblog.controller.vo.BlogDetailVO;
 import com.wyy.myblog.controller.vo.BlogSimpleVO;
 import com.wyy.myblog.dao.*;
+import com.wyy.myblog.dto.BlogCRUDEnum;
+import com.wyy.myblog.dto.BlogCRUDMsg;
 import com.wyy.myblog.entity.Blog;
 import com.wyy.myblog.entity.BlogCategory;
 import com.wyy.myblog.entity.BlogTag;
@@ -89,8 +91,12 @@ public class BlogServiceImpl implements BlogService {
     @Override
     public Boolean batchDeleteBlogs(Long[] ids) {
         boolean success = mBlogMapper.deleteByPrimaryKeys(ids) > 0;
-        if (success) { // 删除博客详情缓存
+        if (success) { // 删除博客详情缓存 | 发送异步消息到ES
             deleteKeyBlogDetailByBlogIds(ids);
+            BlogCRUDMsg blogCRUDMsg = new BlogCRUDMsg();
+            blogCRUDMsg.setBlogIds(Arrays.asList(ids));
+            blogCRUDMsg.setType(BlogCRUDEnum.DELETE.getType());
+            mRabbitMQSender.sendMsgBlogES(blogCRUDMsg);
         }
         return success;
     }
@@ -157,6 +163,11 @@ public class BlogServiceImpl implements BlogService {
                 blogTagRelations.add(blogTagRelation);
             }
             if (mBlogTagRelationMapper.batchInsertSelective(blogTagRelations) > 0) {
+                // 发送异步消息到ES
+                BlogCRUDMsg blogCRUDMsg = new BlogCRUDMsg();
+                blogCRUDMsg.setBlogIds(Collections.singletonList(blog.getBlogId()));
+                blogCRUDMsg.setType(BlogCRUDEnum.SAVE.getType());
+                mRabbitMQSender.sendMsgBlogES(blogCRUDMsg);
                 return "success";
             }
         }
@@ -239,6 +250,11 @@ public class BlogServiceImpl implements BlogService {
             if (mBlogTagRelationMapper.batchInsertSelective(blogTagRelations) > 0) {
                 // 删除博客详情缓存
                 deleteKeyBlogDetailByBlogId(blog.getBlogId());
+                // 发送异步消息到ES
+                BlogCRUDMsg blogCRUDMsg = new BlogCRUDMsg();
+                blogCRUDMsg.setBlogIds(Collections.singletonList(blog.getBlogId()));
+                blogCRUDMsg.setType(BlogCRUDEnum.UPDATE.getType());
+                mRabbitMQSender.sendMsgBlogES(blogCRUDMsg);
                 return "success";
             }
         }
@@ -292,6 +308,7 @@ public class BlogServiceImpl implements BlogService {
         params.put("page", pageNum);
         params.put("limit", 9);
         params.put("tagId", blogTag.getTagId());
+        params.put("blogStatus", 1); //过滤发布状态下的数据
         PageQuery pageQuery = new PageQuery(params);
         List<Blog> blogs = mBlogMapper.getBlogsByTagId(pageQuery);
         int total = mBlogMapper.getTotalBlogs(pageQuery);

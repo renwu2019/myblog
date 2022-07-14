@@ -4,6 +4,7 @@ import com.wyy.myblog.dto.QueueEnum;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.*;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,13 +16,13 @@ import org.springframework.context.annotation.Configuration;
 public class RabbitMQConfig {
 
     /**
-     * 更新浏览量消息交换器
+     * 消息交换器
      * @return
      */
     @Bean
     public DirectExchange blogDirect() {
         return ExchangeBuilder
-                .directExchange(QueueEnum.QUEUE_BLOG_VIEWS.getExchange())
+                .directExchange(QueueEnum.EXCHANGE_BLOG.getExchange())
                 .durable(true)
                 .build();
     }
@@ -31,7 +32,7 @@ public class RabbitMQConfig {
      * @return
      */
     @Bean
-    public Queue blogQueue() {
+    public Queue blogViewsQueue() {
         return new Queue(QueueEnum.QUEUE_BLOG_VIEWS.getQueue());
     }
 
@@ -42,10 +43,23 @@ public class RabbitMQConfig {
      * @return
      */
     @Bean
-    public Binding blogBinding(DirectExchange exchange, Queue queue) {
+    public Binding blogViewsBinding(DirectExchange exchange, @Qualifier("blogViewsQueue") Queue queue) {
         return BindingBuilder
                 .bind(queue)
                 .to(exchange)
                 .with(QueueEnum.QUEUE_BLOG_VIEWS.getRoutingKey());
+    }
+
+    @Bean
+    public Queue blogEsQueue() {
+        return new Queue(QueueEnum.QUEUE_BLOG_ES.getQueue());
+    }
+
+    @Bean
+    public Binding blogEsBinding(DirectExchange exchange, @Qualifier("blogEsQueue") Queue queue) {
+        return BindingBuilder
+                .bind(queue)
+                .to(exchange)
+                .with(QueueEnum.QUEUE_BLOG_ES.getRoutingKey());
     }
 }

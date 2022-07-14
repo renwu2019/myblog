@@ -1,8 +1,7 @@
 package com.wyy.myblog.component;
 
+import com.wyy.myblog.dto.BlogCRUDMsg;
 import com.wyy.myblog.dto.QueueEnum;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.stereotype.Component;
 
@@ -21,5 +20,14 @@ public class RabbitMQSender {
         mAmqpTemplate.convertAndSend(QueueEnum.QUEUE_BLOG_VIEWS.getExchange(),
                 QueueEnum.QUEUE_BLOG_VIEWS.getRoutingKey(),
                 blogId);
+    }
+
+    /**
+     * 博客增、删、改，发送异步消息通知ES进行响应的增删改
+     */
+    public void sendMsgBlogES(BlogCRUDMsg blogCRUDMsg) {
+        mAmqpTemplate.convertAndSend(QueueEnum.QUEUE_BLOG_ES.getExchange(),
+                QueueEnum.QUEUE_BLOG_ES.getRoutingKey(),
+                blogCRUDMsg);
     }
 }

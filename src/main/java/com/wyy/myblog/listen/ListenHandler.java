@@ -3,6 +3,7 @@ package com.wyy.myblog.listen;
 import com.wyy.myblog.dao.BlogMapper;
 import com.wyy.myblog.entity.Blog;
 import com.wyy.myblog.component.RedisOperator;
+import com.wyy.myblog.service.EsBlogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,9 @@ public class ListenHandler  {
     @Resource
     private RedisOperator mRedisOperator;
 
+    @Resource
+    private EsBlogService mEsBlogService;
+
     @Value("${redis.key.prefix.pv}")
     private String REDIS_KEY_PREFIX_PV;
 
@@ -47,6 +51,10 @@ public class ListenHandler  {
         log.info("数据初始化开始...");
         // 将数据库中的数据写入redis
         // 这里就不太方便全部放进来，特别是数据量特别大的时候，还是请求的时候未命中缓存时再加入到缓存比较好
+        log.info("数据库博客数据正在同步到Elasticsearch...");
+        mEsBlogService.importAll();
+        log.info("数据库博客数据同步到Elasticsearch结束...");
+        log.info("数据初始化结束...");
     }
 
     /**
