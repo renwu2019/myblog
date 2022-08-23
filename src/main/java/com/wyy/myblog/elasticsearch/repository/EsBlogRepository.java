@@ -23,7 +23,7 @@ public interface EsBlogRepository extends ElasticsearchRepository<EsBlog, Long> 
      * @param pageable 分页参数
      * @return
      */
-    Page<EsBlog> findByBlogTitleOrBlogContentOrBlogCategoryNameOrBlogTags(
+    Page<EsBlog> findByBlogTitleOrBlogContentOrBlogCategoryNameOrBlogTagsOrderByCreateTimeDesc(
             String blogTitle, String blogContent, String blogCategoryName, String blogTags, Pageable pageable);
 
 }

@@ -38,7 +38,7 @@ public class EsBlogServiceImpl implements EsBlogService {
 
     @Resource
     private EsBlogRepository mEsBlogRepository;
-    
+
     @Override
     public int importAll() {
         // 从数据库导出所有博客数据
@@ -79,7 +79,7 @@ public class EsBlogServiceImpl implements EsBlogService {
     @Override
     public PageResult<BlogBasicVO> search(String keyword, Integer pageNum, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNum - 1, pageSize);
-        Page<EsBlog> esBlogPage = mEsBlogRepository.findByBlogTitleOrBlogContentOrBlogCategoryNameOrBlogTags
+        Page<EsBlog> esBlogPage = mEsBlogRepository.findByBlogTitleOrBlogContentOrBlogCategoryNameOrBlogTagsOrderByCreateTimeDesc
                 (keyword, keyword, keyword, keyword, pageable);
         int totalCount = (int) esBlogPage.getTotalElements();
         log.debug("博客总数量：{}, 博客列表：{}", totalCount, esBlogPage.getContent());
